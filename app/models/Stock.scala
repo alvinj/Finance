@@ -32,7 +32,7 @@ object Stock {
 
   import play.api.db._
   import play.api.Play.current
-  // method requires 'val stock' to be defined
+
   def getAll2(): List[Stock] = DB.withConnection { implicit c =>
     SQL("select * from stocks order by symbol asc").as(stock *)
   }
@@ -111,18 +111,7 @@ object Stock {
       nRowsDeleted
     }
   }
-  
-  
 
-//  def create(symbol: String, company: String) {
-//    DB.withConnection { implicit c =>
-//      SQL("insert into stocks (symbol, company) values ({symbol}, {company})")
-//      .on('symbol -> symbol,
-//          'company -> company
-//      ).executeUpdate()
-//    }
-//  }
-  
 
 }
 
