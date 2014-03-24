@@ -28,11 +28,11 @@ object Stock {
    * This will only work with Play libraries in scope.
    * -------------------------------------------------------------------------------------
    */
-  import anorm._
-  import anorm.SqlParser._
-
-  import play.api.db._
-  import play.api.Play.current
+//  import anorm._
+//  import anorm.SqlParser._
+//
+//  import play.api.db._
+//  import play.api.Play.current
 
   def getAll2(): List[Stock] = DB.withConnection { implicit c =>
     SQL("select * from stocks order by symbol asc").as(stock *)
