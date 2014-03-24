@@ -10,6 +10,7 @@ import models._
 import scala.collection.mutable.ArrayBuffer
 import play.api.libs.json.Json
 import play.api.libs.json._
+import play.api.libs.json.Json._
 
 object Stocks extends Controller {
     
@@ -50,7 +51,6 @@ object Stocks extends Controller {
     println(s"headers: ${request.headers}")
     println(s"body: ${request.body}")
     println(s"query string: ${request.rawQueryString}")
-    import play.api.libs.json.Json._
     stockForm.bindFromRequest.fold(
       errors => {
         println("*** CAME TO STOCK > Fold > Errors ***")
@@ -72,6 +72,12 @@ object Stocks extends Controller {
         
       }
     )
+  }
+  
+  def delete(id: Long) = Action {
+    val numRowsDeleted = Stock.delete(id)
+    val result = Map("success" -> toJson(true), "msg" -> toJson("Stock was deleted"), "id" -> toJson(numRowsDeleted))
+    Ok(Json.toJson(result))
   }
   
   

@@ -13,6 +13,7 @@ GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 GET     /stocks                          controllers.Stocks.list
 POST    /stocks/add                      controllers.Stocks.add
+GET     /stocks/:id/delete               controllers.Stocks.delete(id: Long)
 
 #GET     /stocks/:id/edit                 controllers.Stocks.edit(id: Long)
 #GET     /stocks/:id/delete               controllers.Stocks.delete(id: Long)
