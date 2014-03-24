@@ -15,6 +15,9 @@ create table users (
   constraint unique index idx_username_unique (username asc)
 ) engine = InnoDB;
 
+--
+-- TODO need to add 'user_id' to this table
+--
 create table stocks (
   id int auto_increment not null,
   symbol varchar(10) not null,
@@ -38,10 +41,10 @@ insert into stocks (symbol, company) values ('GOOG', 'Google');
 
 # --- !Downs
 
-# SET FOREIGN_KEY_CHECKS = 0;
-# drop table if exists users; 
-# drop table if exists stock_prices; 
-# drop table if exists stocks;
-# SET FOREIGN_KEY_CHECKS = 1;
+SET FOREIGN_KEY_CHECKS = 0;
+drop table if exists stock_prices;
+drop table if exists users;
+drop table if exists stocks;
+SET FOREIGN_KEY_CHECKS = 1;
 
 
