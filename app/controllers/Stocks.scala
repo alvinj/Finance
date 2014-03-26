@@ -31,26 +31,43 @@ object Stocks extends Controller {
 //        case Stock(id, symbol, company) =>  Stock.findBySymbol(symbol) == 0
 //      })
   )
-
+  
+  // needed to return async results
+  import play.api.libs.concurrent.Execution.Implicits.defaultContext
+  
   /**
    * Need to return data like this (or change the client):
    * echo '{ "data": [ {"id": 1, "symbol": "AAPL", "companyName": "Apple"}, {"id": 2, "symbol": "GOOG", "companyName": "Google"}] }'
+   * 
+   * Now doing this with "async.
+   * @see http://www.playframework.com/documentation/2.2.x/ScalaAsync
+   * 
+   * "A Future[Result] will eventually be redeemed with a value of type Result. 
+   * By giving a Future[Result] instead of a normal Result, we can quickly generate 
+   * the result without blocking. Then, Play will serve this result as soon as the promise is redeemed.
+   * The web client will be blocked while waiting for the response, but nothing will be blocked on the server, 
+   * and server resources can be used to serve other clients."
    */
-  def list = Action {
-    val stocks = Stock.getAll2
-    Ok(Json.toJson(stocks))
+  def list = Action.async {
+    val futureStocks = scala.concurrent.Future{ Stock.getAll }
+    futureStocks.map(stocks => Ok(Json.toJson(stocks)))
   }
 
+//  /**
+//   * Need to return data like this (or change the client):
+//   * echo '{ "data": [ {"id": 1, "symbol": "AAPL", "companyName": "Apple"}, {"id": 2, "symbol": "GOOG", "companyName": "Google"}] }'
+//   */
+//  def list = Action {
+//    val stocks = Stock.getAll2
+//    Ok(Json.toJson(stocks))
+//  }
+//
   /**
    * The Sencha client will send me id, symbol, and companyName in a POST request.
    * I need to return something like this on success:
    *     { "success" : true, "msg" : "", "id" : 100 }
    */
   def add = Action { implicit request =>
-    println(s"content-type: ${request.contentType}")
-    println(s"headers: ${request.headers}")
-    println(s"body: ${request.body}")
-    println(s"query string: ${request.rawQueryString}")
     stockForm.bindFromRequest.fold(
       errors => {
         println("*** CAME TO STOCK > Fold > Errors ***")
@@ -73,15 +90,31 @@ object Stocks extends Controller {
       }
     )
   }
-  
-  def delete(id: Long) = Action {
-    val numRowsDeleted = Stock.delete(id)
-    val result = Map("success" -> toJson(true), "msg" -> toJson("Stock was deleted"), "id" -> toJson(numRowsDeleted))
-    Ok(Json.toJson(result))
+
+  /**
+   * A new "async" delete action.
+   */
+  def delete(id: Long) = Action.async {
+    val futureNumRowsDeleted = scala.concurrent.Future{ Stock.delete(id) }
+    // TODO handle the case where 'count < 1' properly 
+    futureNumRowsDeleted.map{ count =>
+        val result = Map("success" -> toJson(true), "msg" -> toJson("Stock was deleted"), "id" -> toJson(count))
+        Ok(Json.toJson(result))
+    }
   }
+  
+  // original, non-async method
+//  def delete(id: Long) = Action {
+//    val numRowsDeleted = Stock.delete(id)
+//    val result = Map("success" -> toJson(true), "msg" -> toJson("Stock was deleted"), "id" -> toJson(numRowsDeleted))
+//    Ok(Json.toJson(result))
+//  }
   
   
 }
+
+
+
 
 
 

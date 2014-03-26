@@ -34,7 +34,7 @@ object Stock {
 //  import play.api.db._
 //  import play.api.Play.current
 
-  def getAll2(): List[Stock] = DB.withConnection { implicit c =>
+  def getAll(): List[Stock] = DB.withConnection { implicit c =>
     SQL("select * from stocks order by symbol asc").as(stock *)
   }
   

@@ -16,7 +16,6 @@ POST    /stocks/add                      controllers.Stocks.add
 GET     /stocks/:id/delete               controllers.Stocks.delete(id: Long)
 
 #GET     /stocks/:id/edit                 controllers.Stocks.edit(id: Long)
-#GET     /stocks/:id/delete               controllers.Stocks.delete(id: Long)
 #GET     /stocks/:symbol/getCurrentPrice  controllers.Stocks.getCurrentPrice(symbol: String)
 #GET     /stocks/current_prices           controllers.Stocks.currentPrices
 #POST    /stocks                          controllers.Stocks.submit
