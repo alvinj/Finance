@@ -25,14 +25,14 @@ object Transactions extends Controller {
       // verifying here creates a field-level error; if your test returns false, the error is shown
       "symbol" -> nonEmptyText,
       "ttype" -> nonEmptyText,
-      "price" -> bigDecimal,
+      "price" -> of[Double],
       "quantity" -> number,
       "notes" -> text
       )
       // transactionForm -> Transaction
-      ((symbol, ttype, price, quantity, notes) => Transaction(0, symbol, ttype, price, quantity, Calendar.getInstance.getTime, notes))
+      ((symbol, ttype, price, quantity, notes) => Transaction(0, symbol, ttype, BigDecimal(price), quantity, Calendar.getInstance.getTime, notes))
       // Transaction -> TransactionForm
-      ((t: Transaction) => Some(t.symbol, t.ttype, t.price, t.quantity, t.notes))
+      ((t: Transaction) => Some(t.symbol, t.ttype, t.price.toDouble, t.quantity, t.notes))
 )
   
   // needed to return async results
@@ -49,6 +49,10 @@ object Transactions extends Controller {
    *     { "success" : true, "msg" : "", "id" : 100 }
    */
   def add = Action { implicit request =>
+    println(s"*** content-type: ${request.contentType}")
+    println(s"*** headers: ${request.headers}")
+    println(s"*** body: ${request.body}")
+    println(s"*** query string: ${request.rawQueryString}")
     transactionForm.bindFromRequest.fold(
       errors => {
         println("*** CAME TO TRANSACTION > Fold > Errors ***")
@@ -56,7 +60,7 @@ object Transactions extends Controller {
         Ok(Json.toJson(result))
       },
       transaction => {
-        println("*** CAME TO TRANSACTION > Fold > Stock/Success ***")
+        println("*** CAME TO TRANSACTION > Fold > Transaction/Success ***")
         val id = Transaction.insert(transaction)
         id match {
           case Some(autoIncrementId) =>
