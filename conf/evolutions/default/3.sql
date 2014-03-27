@@ -4,6 +4,10 @@
 
 # --- !Ups
 
+--
+-- TODO i think my problem is that each file should only contain changes
+-- to the last file, i.e., new tables or corrections. 
+
 create table users (
   id int not null auto_increment,
   name varchar(100) not null,
@@ -33,7 +37,7 @@ insert into stocks (symbol, company) values ('GOOG', 'Google');
 create table transactions (
   id int auto_increment not null,
   symbol varchar(10) not null,
-  type char(1) not null,
+  ttype char(1) not null,
   quantity int not null,
   price decimal(10,2) not null,
   date_time timestamp not null default now(),
@@ -41,15 +45,19 @@ create table transactions (
   primary key (id)
 ) engine = InnoDB;
 
+-- skip the date_time field, let it default to now ('2014-03-26 18:35:44')
+insert into transactions (symbol, ttype, quantity, price, notes) 
+  values ('AAPL', 'B', 100, 525.0, 'News: Expect new AppleTV any day now.');
+
 
 # --- !Downs
 
-#SET FOREIGN_KEY_CHECKS = 0;
-#drop table if exists stock_prices;
-#drop table if exists users;
-#drop table if exists stocks;
-#drop table if exists transactions;
-#SET FOREIGN_KEY_CHECKS = 1;
+SET FOREIGN_KEY_CHECKS = 0;
+drop table if exists stock_prices;
+drop table if exists users;
+drop table if exists stocks;
+drop table if exists transactions;
+SET FOREIGN_KEY_CHECKS = 1;
 
 
 

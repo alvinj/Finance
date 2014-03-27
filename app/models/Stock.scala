@@ -1,8 +1,11 @@
 package models
 
-case class Stock (val id: Long, 
-                  var symbol: String, 
-                  var companyName: String)
+// TODO `val` and `var` declarations are not needed here (verify)
+case class Stock (
+    val id: Long, 
+    var symbol: String, 
+    var companyName: String
+)
 
 object Stock {
   
