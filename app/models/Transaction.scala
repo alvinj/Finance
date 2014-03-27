@@ -36,6 +36,23 @@ object Transaction {
     SQL("select * from transactions").as(transaction *)
   } 
 
+  /**
+   * This method returns the value of the auto_increment field when the transaction is inserted
+   * into the database table.
+   */
+  def insert(transaction: Transaction): Option[Long] = {
+    val id: Option[Long] = DB.withConnection { implicit c =>
+      SQL("insert into transactions (symbol, ttype, price, quantity, notes) values ({symbol}, {ttype}, {price}, {quantity}, {notes})")
+        .on("symbol" -> transaction.symbol.toUpperCase,
+            "ttype" -> transaction.ttype,
+            "price" -> transaction.price,
+            "quantity" -> transaction.quantity,
+            "notes" -> transaction.notes
+        ).executeInsert()
+      }
+    id
+  }
+  
   
   /**
    * JSON Serializer Code

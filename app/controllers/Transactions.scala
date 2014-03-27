@@ -12,25 +12,27 @@ import play.api.libs.json._
 import play.api.libs.json.Json
 import play.api.libs.json.Json._
 import play.api.data.format.Formats._  // needed for `of[Double]` in mapping
+import java.util.Calendar
 
 object Transactions extends Controller {
     
-  val stockForm: Form[Transaction] = Form(
+  val transactionForm: Form[Transaction] = Form(
     // the names you use in this mapping (such as 'symbol') must match the names that will be
     // POSTed to your methods in JSON.
+    // note: skipping `id` field
+    // note: skipping `datetime` field
     mapping(
       // verifying here creates a field-level error; if your test returns false, the error is shown
       "symbol" -> nonEmptyText,
       "ttype" -> nonEmptyText,
       "price" -> bigDecimal,
       "quantity" -> number,
-      "datetime" -> date,  // date("yyyy-MM-dd")
       "notes" -> text
       )
-      // stockForm -> Transaction
-      ((symbol, ttype, price, quantity, datetime, notes) => Transaction(0, symbol, ttype, price, quantity, datetime, notes))
-      // Transaction -> StockForm
-      ((t: Transaction) => Some(t.symbol, t.ttype, t.price, t.quantity, t.datetime, t.notes))
+      // transactionForm -> Transaction
+      ((symbol, ttype, price, quantity, notes) => Transaction(0, symbol, ttype, price, quantity, Calendar.getInstance.getTime, notes))
+      // Transaction -> TransactionForm
+      ((t: Transaction) => Some(t.symbol, t.ttype, t.price, t.quantity, t.notes))
 )
   
   // needed to return async results
@@ -39,6 +41,35 @@ object Transactions extends Controller {
   def list = Action.async {
     val transactionsAsFuture = scala.concurrent.Future{ Transaction.getAll }
     transactionsAsFuture.map(transactions => Ok(Json.toJson(transactions)))
+  }
+
+  /**
+   * The Sencha client will send me id, symbol, and companyName in a POST request.
+   * I need to return something like this on success:
+   *     { "success" : true, "msg" : "", "id" : 100 }
+   */
+  def add = Action { implicit request =>
+    transactionForm.bindFromRequest.fold(
+      errors => {
+        println("*** CAME TO TRANSACTION > Fold > Errors ***")
+        val result = Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))
+        Ok(Json.toJson(result))
+      },
+      transaction => {
+        println("*** CAME TO TRANSACTION > Fold > Stock/Success ***")
+        val id = Transaction.insert(transaction)
+        id match {
+          case Some(autoIncrementId) =>
+              val result = Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(autoIncrementId))
+              Ok(Json.toJson(result))
+          case None =>
+              // TODO inserts can fail; i need to handle this properly.
+              val result = Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(-1))
+              Ok(Json.toJson(result))
+        }
+        
+      }
+    )
   }
 
 }
