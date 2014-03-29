@@ -25,3 +25,4 @@ GET     /stocks/:id/delete               controllers.Stocks.delete(id: Long)
 
 GET     /transactions                    controllers.Transactions.list
 POST    /transactions/add                controllers.Transactions.add
+GET     /transactions/:id/delete         controllers.Transactions.delete(id: Long)

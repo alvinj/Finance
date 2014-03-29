@@ -70,21 +70,16 @@ object Stocks extends Controller {
   def add = Action { implicit request =>
     stockForm.bindFromRequest.fold(
       errors => {
-        println("*** CAME TO STOCK > Fold > Errors ***")
-        val result = Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))
-        Ok(Json.toJson(result))
+        Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))))
       },
       stock => {
-        println("*** CAME TO STOCK > Fold > Stock/Success ***")
         val id = Stock.insert(stock)
         id match {
           case Some(autoIncrementId) =>
-              val result = Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(autoIncrementId))
-              Ok(Json.toJson(result))
+              Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(autoIncrementId))))
           case None =>
               // TODO inserts can fail; i need to handle this properly.
-              val result = Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(-1))
-              Ok(Json.toJson(result))
+              Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(-1))))
         }
         
       }

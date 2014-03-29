@@ -56,7 +56,19 @@ object Transaction {
       }
     id
   }
-  
+
+  /**
+   * Delete a transaction given its `id`.
+   */
+  def delete(id: Long): Int = {
+    DB.withConnection { implicit c =>
+      val nRowsDeleted = SQL("DELETE FROM transactions WHERE id = {id}")
+        .on('id -> id)
+        .executeUpdate()
+      nRowsDeleted
+    }
+  }
+
   
   /**
    * JSON Serializer Code

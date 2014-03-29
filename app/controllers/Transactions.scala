@@ -49,17 +49,11 @@ object Transactions extends Controller {
    *     { "success" : true, "msg" : "", "id" : 100 }
    */
   def add = Action { implicit request =>
-    println(s"*** content-type: ${request.contentType}")
-    println(s"*** headers: ${request.headers}")
-    println(s"*** body: ${request.body}")
-    println(s"*** query string: ${request.rawQueryString}")
     transactionForm.bindFromRequest.fold(
       errors => {
-        println("*** CAME TO TRANSACTION > Fold > Errors ***")
         Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))))
       },
       transaction => {
-        println("*** CAME TO TRANSACTION > Fold > Transaction/Success ***")
         val id = Transaction.insert(transaction)
         id match {
           case Some(autoIncrementId) =>
@@ -74,6 +68,19 @@ object Transactions extends Controller {
       }
     )
   }
+
+  /**
+   * Delete a transaction, asynchronously.
+   */
+  def delete(id: Long) = Action.async {
+    val futureNumRowsDeleted = scala.concurrent.Future{ Transaction.delete(id) }
+    // TODO handle the case where 'count < 1' properly 
+    futureNumRowsDeleted.map{ count =>
+        val result = Map("success" -> toJson(true), "msg" -> toJson("Transaction was deleted"), "id" -> toJson(count))
+        Ok(Json.toJson(result))
+    }
+  }
+  
 
 }
 
