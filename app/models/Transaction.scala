@@ -37,7 +37,7 @@ object Transaction {
 
   // TODO add 'order by'
   def getAll(): List[Transaction] = DB.withConnection { implicit c =>
-    SQL("select * from transactions").as(transaction *)
+    SQL("select * from transactions order by date_time desc").as(transaction *)
   } 
 
   /**
@@ -90,7 +90,6 @@ object Transaction {
               "ttype" -> JsString(transaction.ttype),
               "price" -> JsNumber(transaction.price),
               "quantity" -> JsNumber(transaction.quantity),
-              //"datetime" -> JsNumber(transaction.datetime.getTime),  // TODO verify
               "datetime" -> JsString(sdf.format(transaction.datetime)),
               "notes" -> JsString(transaction.notes)
           )
