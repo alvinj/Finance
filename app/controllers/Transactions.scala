@@ -25,12 +25,12 @@ object Transactions extends Controller {
       // verifying here creates a field-level error; if your test returns false, the error is shown
       "symbol" -> nonEmptyText,
       "ttype" -> nonEmptyText,
-      "price" -> of[Double],
+      "price" -> bigDecimal,
       "quantity" -> number,
       "notes" -> text
       )
       // transactionForm -> Transaction
-      ((symbol, ttype, price, quantity, notes) => Transaction(0, symbol, ttype, BigDecimal(price), quantity, Calendar.getInstance.getTime, notes))
+      ((symbol, ttype, price, quantity, notes) => Transaction(0, symbol, ttype, price, quantity, Calendar.getInstance.getTime, notes))
       // Transaction -> TransactionForm
       ((t: Transaction) => Some(t.symbol, t.ttype, t.price.toDouble, t.quantity, t.notes))
 )
@@ -56,8 +56,7 @@ object Transactions extends Controller {
     transactionForm.bindFromRequest.fold(
       errors => {
         println("*** CAME TO TRANSACTION > Fold > Errors ***")
-        val result = Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))
-        Ok(Json.toJson(result))
+        Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))))
       },
       transaction => {
         println("*** CAME TO TRANSACTION > Fold > Transaction/Success ***")
