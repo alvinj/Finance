@@ -1,5 +1,7 @@
 package models
 
+import java.text.SimpleDateFormat
+
 case class Transaction (
     id: Long, 
     symbol: String,
@@ -81,13 +83,15 @@ object Transaction {
 
       // convert from Transaction object to JSON (serializing to JSON)
       def writes(transaction: Transaction): JsValue = {
+          val sdf = new SimpleDateFormat("yyyy-MM-dd")
           val transactionSeq = Seq(
               "id" -> JsNumber(transaction.id),
               "symbol" -> JsString(transaction.symbol),
               "ttype" -> JsString(transaction.ttype),
               "price" -> JsNumber(transaction.price),
               "quantity" -> JsNumber(transaction.quantity),
-              "datetime" -> JsNumber(transaction.datetime.getTime),  // TODO verify
+              //"datetime" -> JsNumber(transaction.datetime.getTime),  // TODO verify
+              "datetime" -> JsString(sdf.format(transaction.datetime)),
               "notes" -> JsString(transaction.notes)
           )
           JsObject(transactionSeq)
