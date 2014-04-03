@@ -31,4 +31,5 @@ GET     /transactions/:id/delete         controllers.Transactions.delete(id: Lon
 # RESEARCH
 
 GET     /research_links                  controllers.ResearchLinks.list
+POST    /research_links/add              controllers.ResearchLinks.add
 

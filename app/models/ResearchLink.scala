@@ -30,6 +30,18 @@ object ResearchLink {
     ).toList
   }
 
+  def insert(researchLink: ResearchLink): Option[Long] = {
+    val id: Option[Long] = DB.withConnection { implicit c =>
+      SQL("insert into research_links (symbol, url, notes) values ({symbol}, {url}, {notes})")
+        .on(
+          'symbol -> researchLink.symbol,
+          'url -> researchLink.url,
+          'notes -> researchLink.notes
+        ).executeInsert()
+      }
+    id
+  }
+
   /**
    * JSON Serializer Code
    * --------------------
