@@ -32,8 +32,10 @@ create table stocks (
 insert into stocks (symbol, company) values ('AAPL', 'Apple');
 insert into stocks (symbol, company) values ('GOOG', 'Google');
 
+--
+-- TRANSACTIONS
+--
 -- type is B(uy) or S(ell)
--- TODO add 'uid' field
 create table transactions (
   id int auto_increment not null,
   symbol varchar(10) not null,
@@ -50,6 +52,22 @@ insert into transactions (symbol, ttype, quantity, price, notes)
   values ('AAPL', 'B', 100, 525.0, 'News: Expect new AppleTV any day now.');
 
 
+--
+-- RESEARCH
+--
+create table research_links (
+  id int auto_increment not null,
+  symbol varchar(10) not null,
+  url varchar(200) not null,
+  date_time timestamp not null default now(),
+  notes text,
+  primary key (id)
+) engine = InnoDB;
+
+insert into research_links (symbol, url, notes) 
+  values ('AAPL', 'http://foo.bar.com/buy-aapl-now', 'A good article on upcoming products.');
+
+
 # --- !Downs
 
 SET FOREIGN_KEY_CHECKS = 0;
@@ -57,6 +75,7 @@ drop table if exists stock_prices;
 drop table if exists users;
 drop table if exists stocks;
 drop table if exists transactions;
+drop table if exists research_links;
 SET FOREIGN_KEY_CHECKS = 1;
 
 
