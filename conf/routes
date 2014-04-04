@@ -32,4 +32,4 @@ GET     /transactions/:id/delete         controllers.Transactions.delete(id: Lon
 
 GET     /research_links                  controllers.ResearchLinks.list
 POST    /research_links/add              controllers.ResearchLinks.add
-
+GET     /research_links/:id/delete       controllers.ResearchLinks.delete(id: Long)

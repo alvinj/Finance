@@ -63,6 +63,18 @@ object ResearchLinks extends Controller {
     )
   }
 
+  /**
+   * Delete a transaction, asynchronously.
+   */
+  def delete(id: Long) = Action.async {
+    val futureNumRowsDeleted = scala.concurrent.Future{ ResearchLink.delete(id) }
+    // TODO handle the case where 'count < 1' properly 
+    futureNumRowsDeleted.map{ count =>
+        val result = Map("success" -> toJson(true), "msg" -> toJson("Link was deleted"), "id" -> toJson(count))
+        Ok(Json.toJson(result))
+    }
+  }
+  
   
 }
 
