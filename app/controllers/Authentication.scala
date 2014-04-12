@@ -18,13 +18,14 @@ class AuthenticatedRequest[A](val username: String, request: Request[A]) extends
 object AuthenticatedAction extends ActionBuilder[AuthenticatedRequest] {
 
   def invokeBlock[A](request: Request[A], block: (AuthenticatedRequest[A]) => Future[SimpleResult]) = {
-    request.session.get("username").map { username =>
-      println("AuthenticatedAction - USER IS OKAY")
-      block(new AuthenticatedRequest(username, request))
-    } getOrElse {
-      println("AuthenticatedAction - NOT AUTHENTICATED")
-      Future.successful(Forbidden)
-    }
+      // note: i used to check `username` here; now check `uuid`
+      request.session.get("uuid").map { uuid =>
+          println("AuthenticatedAction - USER IS OKAY")
+          block(new AuthenticatedRequest(uuid, request))
+      } getOrElse {
+          println("AuthenticatedAction - NOT AUTHENTICATED")
+          Future.successful(Forbidden)
+      }
   }
 
 }

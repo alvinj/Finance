@@ -12,7 +12,7 @@ import play.api.libs.json._
 import play.api.libs.json.Json
 import play.api.libs.json.Json._
 
-object Stocks extends Controller {
+object Stocks extends Controller with BaseControllerTrait {
     
   val stockForm: Form[Stock] = Form(
     // defines a mapping that will handle Stock values.
@@ -48,42 +48,63 @@ object Stocks extends Controller {
    * The web client will be blocked while waiting for the response, but nothing will be blocked on the server, 
    * and server resources can be used to serve other clients."
    */
-  def list = Action.async {
-    val futureStocks = scala.concurrent.Future{ Stock.getAll }
-    futureStocks.map(stocks => Ok(Json.toJson(stocks)))
-  }
+//  def list = Action.async {
+//    val futureStocks = scala.concurrent.Future{ Stock.getAll }
+//    futureStocks.map(stocks => Ok(Json.toJson(stocks)))
+//  }
 
 //  /**
 //   * Need to return data like this (or change the client):
 //   * echo '{ "data": [ {"id": 1, "symbol": "AAPL", "companyName": "Apple"}, {"id": 2, "symbol": "GOOG", "companyName": "Google"}] }'
 //   */
-//  def list = Action {
-//    val stocks = Stock.getAll2
-//    Ok(Json.toJson(stocks))
-//  }
-//
+  def list = AuthenticatedAction { implicit request =>
+      val uidOption = getUid(session)
+      uidOption match {
+        case None =>
+            NotAcceptable(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Could not find the UserID"))))
+        case Some(uid) =>
+            val stocks = Stock.getAll(uid)
+            Ok(Json.toJson(stocks))
+      }
+  }
+
   /**
    * The Sencha client will send me id, symbol, and companyName in a POST request.
    * I need to return something like this on success:
    *     { "success" : true, "msg" : "", "id" : 100 }
    */
   def add = Action { implicit request =>
-    stockForm.bindFromRequest.fold(
-      errors => {
-        Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))))
-      },
-      stock => {
-        val id = Stock.insert(stock)
-        id match {
-          case Some(autoIncrementId) =>
-              Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(autoIncrementId))))
-          case None =>
-              // TODO inserts can fail; i need to handle this properly.
-              Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(-1))))
+      stockForm.bindFromRequest.fold(
+        errors => {
+            Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))))
+        },
+        stock => {
+            val uidOption = getUid(session)
+            println(s"in 'add' action, uidOption = ${uidOption}")
+            addResult(uidOption, stock)
         }
-        
-      }
     )
+  }
+  
+  /**
+   * If the uid is invalid, return an error.
+   * If the uid is valid, insert the data and return a success message.
+   * If the uid is valid but the insert fails, return an error.
+   */
+  private def addResult(uidOption: Option[Long], stock: Stock) = {
+      uidOption match {
+        case None =>
+            NotAcceptable(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Could not find the UserID"))))
+        case Some(uid) =>
+            val id = Stock.insert(uid, stock)
+            id match {
+              case Some(autoIncrementId) =>
+                  Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(autoIncrementId))))
+              case None =>
+                  // TODO inserts can fail; i need to handle this properly.
+                  Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(-1))))
+          }
+      }
   }
 
   /**

@@ -37,33 +37,25 @@ object Stock {
 //  import play.api.db._
 //  import play.api.Play.current
 
-  def getAll(): List[Stock] = DB.withConnection { implicit c =>
-    SQL("select * from stocks order by symbol asc").as(stock *)
+  def getAll(uid: Long): List[Stock] = DB.withConnection { implicit c =>
+      SQL("SELECT * FROM stocks WHERE uid = {uid} ORDER BY symbol ASC")
+          .on('uid -> uid)
+          .as(stock *)
   }
   
-//  // .on("countryCode" -> "FRA")
-//  def create(stock: Stock): Int = {
-//    DB.withConnection { implicit c =>
-//      val result = SQL("insert into stocks (symbol, companyName) values ({symbol}, {companyName})")
-//        .on('symbol -> stock.symbol.toUpperCase,
-//            'company -> stock.companyName
-//        ).executeInsert()
-//      result
-//    }
-//  }
-
   /**
    * This method returns the value of the auto_increment field when the stock is inserted
    * into the database table.
    */
-  def insert(stock: Stock): Option[Long] = {
-    val id: Option[Long] = DB.withConnection { implicit c =>
-      SQL("insert into stocks (symbol, company) values ({symbol}, {companyName})")
-        .on("symbol" -> stock.symbol.toUpperCase,
-            "companyName" -> stock.companyName)
-        .executeInsert()
+  def insert(uid: Long, stock: Stock): Option[Long] = {
+      DB.withConnection { implicit c =>
+          SQL("INSERT INTO stocks (uid, symbol, company) VALUES ({uid}, {symbol}, {companyName})")
+              .on(
+                  "uid" -> uid,
+                  "symbol" -> stock.symbol.toUpperCase,
+                  "companyName" -> stock.companyName)
+              .executeInsert()
       }
-    id
   }
   
   def update(id: Long, stock: Stock) {

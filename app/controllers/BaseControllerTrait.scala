@@ -27,6 +27,7 @@ trait BaseControllerTrait {
    */
   def getUid(session: Session): Option[Long] = {
     // get the uuid from the session, then get the uid from the cache
+    println("*getting the uid from the session*")
     session.get("uuid") match {
       case None => None
       case Some(uuid) => Cache.getAs[Long](uuid)

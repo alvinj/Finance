@@ -24,7 +24,7 @@ object ResearchLinks extends Controller {
       "notes" -> optional(text)
     )
     // researchLinkForm -> ResearchLink
-    ((symbol, url, notes) => ResearchLink(0, symbol, url, Calendar.getInstance.getTime, notes))
+    ((symbol, url, notes) => ResearchLink(0, 0, symbol, url, Calendar.getInstance.getTime, notes))
     // ResearchLink -> researchLinkForm
     ((rl: ResearchLink) => Some(rl.symbol, rl.url, rl.notes))
   )
