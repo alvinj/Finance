@@ -4,6 +4,7 @@ import java.text.SimpleDateFormat
 
 case class Transaction (
     id: Long, 
+    uid: Long, 
     symbol: String,
     ttype: String,
     price: BigDecimal,
@@ -25,13 +26,14 @@ object Transaction {
   // scala BigDecimal as needed.
   val transaction = {
     get[Long]("id") ~ 
+    get[Long]("uid") ~ 
     get[String]("symbol") ~ 
     get[String]("ttype") ~
     get[java.math.BigDecimal]("price") ~
     get[Int]("quantity") ~
     get[java.util.Date]("date_time") ~ 
     get[String]("notes") map {
-      case id~symbol~ttype~price~quantity~datetime~notes => Transaction(id, symbol, ttype, BigDecimal(price), quantity, datetime, notes)
+      case id~uid~symbol~ttype~price~quantity~datetime~notes => Transaction(id, uid, symbol, ttype, BigDecimal(price), quantity, datetime, notes)
     }
   }
 
@@ -48,8 +50,9 @@ object Transaction {
    */
   def insert(transaction: Transaction): Option[Long] = {
     val id: Option[Long] = DB.withConnection { implicit c =>
-      SQL("insert into transactions (symbol, ttype, price, quantity, notes) values ({symbol}, {ttype}, {price}, {quantity}, {notes})")
-        .on("symbol" -> transaction.symbol.toUpperCase,
+      SQL("insert into transactions (uid, symbol, ttype, price, quantity, notes) values ({uid}, {symbol}, {ttype}, {price}, {quantity}, {notes})")
+        .on("uid" -> transaction.uid,
+            "symbol" -> transaction.symbol.toUpperCase,
             "ttype" -> transaction.ttype,
             "price" -> transaction.price.bigDecimal,  //converts to java.math.BigDecimal
             "quantity" -> transaction.quantity,
@@ -61,6 +64,7 @@ object Transaction {
 
   /**
    * Delete a transaction given its `id`.
+   * TODO add `uid` here
    */
   def delete(id: Long): Int = {
     DB.withConnection { implicit c =>
@@ -86,6 +90,7 @@ object Transaction {
           val sdf = new SimpleDateFormat("yyyy-MM-dd")
           val transactionSeq = Seq(
               "id" -> JsNumber(transaction.id),
+              "uid" -> JsNumber(transaction.uid),
               "symbol" -> JsString(transaction.symbol),
               "ttype" -> JsString(transaction.ttype),
               "price" -> JsNumber(transaction.price),
@@ -99,13 +104,14 @@ object Transaction {
       // convert from a JSON string to a Transaction object (de-serializing from JSON)
       def reads(json: JsValue): JsResult[Transaction] = {
           val id = (json \ "id").as[Long]
+          val uid = (json \ "uid").as[Long]
           val symbol = (json \ "symbol").as[String]
           val ttype = (json \ "ttype").as[String]
           val price = (json \ "price").as[BigDecimal]
           val quantity = (json \ "quantity").as[Int]
           val datetime = (json \ "datetime").as[java.util.Date]
           val notes = (json \ "notes").as[String]
-          JsSuccess(Transaction(id, symbol, ttype, price, quantity, datetime, notes))
+          JsSuccess(Transaction(id, uid, symbol, ttype, price, quantity, datetime, notes))
       }
   }
 

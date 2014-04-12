@@ -9,6 +9,11 @@ GET     /                           controllers.Application.index
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
 
 
+# LOGIN
+
+POST    /login                           controllers.Application.login
+
+
 # STOCKS
 
 GET     /stocks                          controllers.Stocks.list

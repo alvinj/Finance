@@ -16,6 +16,9 @@ import java.util.Calendar
 
 object Transactions extends Controller {
     
+  /**
+   * TODO need to handle `uid` here
+   */
   val transactionForm: Form[Transaction] = Form(
     // the names you use in this mapping (such as 'symbol') must match the names that will be
     // POSTed to your methods in JSON.
@@ -30,25 +33,32 @@ object Transactions extends Controller {
       "notes" -> text
       )
       // transactionForm -> Transaction
-      ((symbol, ttype, price, quantity, notes) => Transaction(0, symbol, ttype, price, quantity, Calendar.getInstance.getTime, notes))
+      // TODO handle uid here
+      ((symbol, ttype, price, quantity, notes) => Transaction(0, 0, symbol, ttype, price, quantity, Calendar.getInstance.getTime, notes))
       // Transaction -> TransactionForm
       ((t: Transaction) => Some(t.symbol, t.ttype, t.price.toDouble, t.quantity, t.notes))
-)
+  )
   
   // needed to return async results
   import play.api.libs.concurrent.Execution.Implicits.defaultContext
   
-  def list = Action.async {
-    val transactionsAsFuture = scala.concurrent.Future{ Transaction.getAll }
-    transactionsAsFuture.map(transactions => Ok(Json.toJson(transactions)))
+//  how i *was* handling the action with a Future
+//  def list = Action {
+//    val transactionsAsFuture = scala.concurrent.Future{ Transaction.getAll }
+//    transactionsAsFuture.map(transactions => Ok(Json.toJson(transactions)))
+//  }
+
+  def list = AuthenticatedAction {
+    Ok(Json.toJson(Transaction.getAll))
   }
 
   /**
+   * TODO add `uid` here
    * The Sencha client will send me id, symbol, and companyName in a POST request.
    * I need to return something like this on success:
    *     { "success" : true, "msg" : "", "id" : 100 }
    */
-  def add = Action { implicit request =>
+  def add = AuthenticatedAction { implicit request =>
     transactionForm.bindFromRequest.fold(
       errors => {
         Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))))
@@ -69,17 +79,23 @@ object Transactions extends Controller {
     )
   }
 
+  def delete(id: Long) = AuthenticatedAction {
+    val numRowsDeleted = Transaction.delete(id)
+    Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Transaction was deleted"), "id" -> toJson(numRowsDeleted))))
+  }
+
   /**
    * Delete a transaction, asynchronously.
+   * TODO add `uid` here
    */
-  def delete(id: Long) = Action.async {
-    val futureNumRowsDeleted = scala.concurrent.Future{ Transaction.delete(id) }
-    // TODO handle the case where 'count < 1' properly 
-    futureNumRowsDeleted.map{ count =>
-        val result = Map("success" -> toJson(true), "msg" -> toJson("Transaction was deleted"), "id" -> toJson(count))
-        Ok(Json.toJson(result))
-    }
-  }
+//  def delete(id: Long) = Action.async {
+//    val futureNumRowsDeleted = scala.concurrent.Future{ Transaction.delete(id) }
+//    // TODO handle the case where 'count < 1' properly 
+//    futureNumRowsDeleted.map{ count =>
+//        val result = Map("success" -> toJson(true), "msg" -> toJson("Transaction was deleted"), "id" -> toJson(count))
+//        Ok(Json.toJson(result))
+//    }
+//  }
   
 
 }

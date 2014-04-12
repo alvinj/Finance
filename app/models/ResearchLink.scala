@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat
 
 case class ResearchLink (
   var id: Long,
+  var uid: Long,
   var symbol: String,
   var url: String,
   var datetime: java.util.Date,
@@ -22,6 +23,7 @@ object ResearchLink {
     sqlQuery().map ( row =>
       ResearchLink(
         row[Long]("id"),
+        row[Long]("uid"),
         row[String]("symbol"),
         row[String]("url"),
         row[java.util.Date]("date_time"),
@@ -44,6 +46,7 @@ object ResearchLink {
           val sdf = new SimpleDateFormat("yyyy-MM-dd")
           val researchLinkSeq = Seq(
               "id" -> JsNumber(researchLink.id),
+              "uid" -> JsNumber(researchLink.uid),
               "symbol" -> JsString(researchLink.symbol),
               "url" -> JsString(researchLink.url),
               "datetime" -> JsString(sdf.format(researchLink.datetime)),
@@ -56,11 +59,12 @@ object ResearchLink {
       // @see http://www.playframework.com/documentation/2.2.x/ScalaJson regarding Option
       def reads(json: JsValue): JsResult[ResearchLink] = {
           val id = (json \ "id").as[Long]
+          val uid = (json \ "uid").as[Long]
           val symbol = (json \ "symbol").as[String]
           val url = (json \ "url").as[String]
           val datetime = (json \ "datetime").as[java.util.Date]
           val notes = (json \ "notes").asOpt[String]
-          JsSuccess(ResearchLink(id, symbol, url, datetime, notes))
+          JsSuccess(ResearchLink(id, uid, symbol, url, datetime, notes))
       }
   }
 
