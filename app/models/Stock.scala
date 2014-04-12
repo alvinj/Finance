@@ -108,19 +108,19 @@ object Stock {
     }
   }
 
-  def delete(id: Long): Int = {
-    DB.withConnection { implicit c =>
-      val nRowsDeleted = SQL("DELETE FROM stocks WHERE id = {id}")
-        .on('id -> id)
-        .executeUpdate()
-      nRowsDeleted
-    }
+  def delete(uid: Long, id: Long): Int = {
+      DB.withConnection { implicit c =>
+          val nRowsDeleted = SQL("DELETE FROM stocks WHERE id = {id} AND uid = {uid}")
+              .on('id -> id, 'uid -> uid)
+              .executeUpdate()
+          nRowsDeleted
+      }
   }
 
-  def delete(symbol: String): Int = {
+  def delete(uid: Long, symbol: String): Int = {
     DB.withConnection { implicit c =>
-      val nRowsDeleted = SQL("DELETE FROM stocks WHERE symbol = {symbol}")
-        .on('symbol -> symbol)
+      val nRowsDeleted = SQL("DELETE FROM stocks WHERE symbol = {symbol} AND uid = {uid}")
+        .on('symbol -> symbol, 'uid -> uid)
         .executeUpdate()
       nRowsDeleted
     }

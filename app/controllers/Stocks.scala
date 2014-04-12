@@ -60,11 +60,11 @@ object Stocks extends Controller with BaseControllerTrait {
   def list = AuthenticatedAction { implicit request =>
       val uidOption = getUid(session)
       uidOption match {
-        case None =>
-            NotAcceptable(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Could not find the UserID"))))
-        case Some(uid) =>
-            val stocks = Stock.getAll(uid)
-            Ok(Json.toJson(stocks))
+          case None =>
+              NotAcceptable(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Could not find the UserID"))))
+          case Some(uid) =>
+              val stocks = Stock.getAll(uid)
+              Ok(Json.toJson(stocks))
       }
   }
 
@@ -73,17 +73,24 @@ object Stocks extends Controller with BaseControllerTrait {
    * I need to return something like this on success:
    *     { "success" : true, "msg" : "", "id" : 100 }
    */
-  def add = Action { implicit request =>
+  def add = AuthenticatedAction { implicit request =>
       stockForm.bindFromRequest.fold(
-        errors => {
-            Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Boom!"), "id" -> toJson(0))))
-        },
-        stock => {
-            val uidOption = getUid(session)
-            println(s"in 'add' action, uidOption = ${uidOption}")
-            addResult(uidOption, stock)
-        }
-    )
+          errors => {
+              Ok(Json.toJson(Map(
+                  "success" -> toJson(false), 
+                  "msg" -> toJson("Form binding failed. Stock is probably already in the database."))))
+          },
+          stock => {
+              val uidOption = getUid(session)
+              println(s"in 'add' action, uidOption = ${uidOption}")
+              uidOption match {
+                  case None =>
+                      NotAcceptable(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Could not find the UserID"))))
+                  case Some(uid) =>
+                      attemptInsertAndReturnResult(uid, stock)
+              }
+          }
+      )
   }
   
   /**
@@ -91,41 +98,29 @@ object Stocks extends Controller with BaseControllerTrait {
    * If the uid is valid, insert the data and return a success message.
    * If the uid is valid but the insert fails, return an error.
    */
-  private def addResult(uidOption: Option[Long], stock: Stock) = {
-      uidOption match {
-        case None =>
-            NotAcceptable(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Could not find the UserID"))))
-        case Some(uid) =>
-            val id = Stock.insert(uid, stock)
-            id match {
-              case Some(autoIncrementId) =>
-                  Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(autoIncrementId))))
-              case None =>
-                  // TODO inserts can fail; i need to handle this properly.
-                  Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(-1))))
-          }
+  private def attemptInsertAndReturnResult(uid: Long, stock: Stock) = {
+      val autoIncrementIdOption = Stock.insert(uid, stock)
+      autoIncrementIdOption match {
+          case Some(autoIncrementId) =>
+              Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Success!"), "id" -> toJson(autoIncrementId))))
+          case None =>
+             Ok(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("SQL INSERT failed"), "id" -> toJson(-1))))
       }
   }
 
   /**
-   * A new "async" delete action.
+   * Delete the stock that has the given id.
    */
-  def delete(id: Long) = Action.async {
-    val futureNumRowsDeleted = scala.concurrent.Future{ Stock.delete(id) }
-    // TODO handle the case where 'count < 1' properly 
-    futureNumRowsDeleted.map{ count =>
-        val result = Map("success" -> toJson(true), "msg" -> toJson("Stock was deleted"), "id" -> toJson(count))
-        Ok(Json.toJson(result))
-    }
+  def delete(id: Long) = AuthenticatedAction { implicit request =>
+      getUid(session) match {
+          case None =>
+              NotAcceptable(Json.toJson(Map("success" -> toJson(false), "msg" -> toJson("Could not find the UserID"))))
+          case Some(uid) => {
+              val numRowsDeleted = Stock.delete(uid, id)
+              Ok(Json.toJson(Map("success" -> toJson(true), "msg" -> toJson("Stock was deleted"), "id" -> toJson(numRowsDeleted))))
+          }
+      }
   }
-  
-  // original, non-async method
-//  def delete(id: Long) = Action {
-//    val numRowsDeleted = Stock.delete(id)
-//    val result = Map("success" -> toJson(true), "msg" -> toJson("Stock was deleted"), "id" -> toJson(numRowsDeleted))
-//    Ok(Json.toJson(result))
-//  }
-  
   
 }
 
