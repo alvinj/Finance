@@ -15,7 +15,7 @@ case class ResearchLink (
   var notes: Option[String]
 )
 
-object ResearchLink {
+object ResearchLink extends SqlModel {
 
   val sqlQuery = SQL("SELECT * FROM research_links ORDER BY date_time DESC")
 
@@ -31,6 +31,28 @@ object ResearchLink {
       )
     ).toList
   }
+
+  def insert(researchLink: ResearchLink): Option[Long] = {
+    val id: Option[Long] = DB.withConnection { implicit c =>
+      SQL("insert into research_links (symbol, url, notes) values ({symbol}, {url}, {notes})")
+        .on(
+          'symbol -> researchLink.symbol,
+          'url -> researchLink.url,
+          'notes -> researchLink.notes
+        ).executeInsert()
+      }
+    id
+  }
+
+  def delete(id: Long): Int = delete(id, "research_links")
+//  def delete(id: Long): Int = {
+//    DB.withConnection { implicit c =>
+//      val nRowsDeleted = SQL("delete from research_links where id = {id}")
+//        .on('id -> id)
+//        .executeUpdate()
+//      nRowsDeleted
+//    }
+//  }
 
   /**
    * JSON Serializer Code
